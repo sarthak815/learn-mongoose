@@ -30,10 +30,12 @@ export interface IBook extends Document {
  * Static methods work on the collection and not on a particular document.
  * @interface
  * @extends Model
+ * @property {Function} getBook - A function to get a book by id.
  * @property {Function} getAllBooksWithAuthors - A function to get all books with authors.
  * @property {Function} getBookCount - A function to get the count of books.
  */
 interface IBookModel extends Model<IBook> {
+  getBook(id: string): Promise<IBook | null>;
   getAllBooksWithAuthors(projectionOpts: string, sortOpts?: { [key: string]: 1 | -1 }): Promise<IBook[]>;
   getBookCount(fitler?: FilterQuery<IBook>): Promise<number>;
 }
@@ -57,6 +59,15 @@ const BookSchema: Schema<IBook> = new Schema(
     genre: [{ type: Schema.Types.ObjectId, ref: 'Genre' }]
   }
 );
+
+/**
+ * retrieves a book by id.
+ * @param id the id of the book to be retrieved.
+ * @returns a promise of the book or null.
+ */
+BookSchema.statics.getBook = async function (id: string): Promise<IBook | null> {
+  return this.findById(id).populate('author').populate('genre').exec();
+}
 
 /**
  * the function retrieves all books with author information 
